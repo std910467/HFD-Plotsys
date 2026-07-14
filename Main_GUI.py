@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QPushButton, QFileDialog, QLabel, QLineEdit, QComboBox)
+                             QHBoxLayout, QPushButton, QFileDialog, QLabel, 
+                             QLineEdit, QComboBox, QSpinBox,QAbstractSpinBox)
 
 # 引入plot_core.py繪圖功能
-from plot_core import load_data, draw_high_freq_plot
+from plot_core import load_data, draw_high_freq_plot, change_ax1, change_ax2
 
 class PlotApp(QMainWindow):
     def __init__(self):
@@ -27,16 +28,26 @@ class PlotApp(QMainWindow):
         self.btn_open.setFixedWidth(100)
         self.btn_open.clicked.connect(self.open_file)
         
-        
-        self.input_param01 = QLineEdit(self)
-        self.input_param01.setText('2')
-        self.input_param01.setPlaceholderText('header line number')
+        ##設定輸入標頭的地方~~功能開發中
+        self.input_param01 = QSpinBox(self)
+        self.input_param01.setValue(2)
+        self.input_param01.setKeyboardTracking(False) #關閉鍵盤追蹤，這樣輸入完才會作動
+        self.input_param01.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons) #關閉旁邊內建的上下箭頭。
+        self.input_param01.setToolTip('請輸入 Excel 資料的標頭行數 (Header Line Number)') #浮動顯示輸入說明。
         self.input_param01.setFixedWidth(100)
+        self.input_param01.valueChanged.connect(self.Update_plot)
 
+
+        ##設定下拉選單，調整要畫得標題
         self.combo_data01 = QComboBox(self)
         self.combo_data01.setFixedWidth(100)
         self.combo_data02 = QComboBox(self)
         self.combo_data02.setFixedWidth(100)
+        
+        self.combo_data01.currentTextChanged.connect(self.combo01_changed)
+        self.combo_data02.currentTextChanged.connect(self.combo02_changed)
+
+
 
         top_layout.addWidget(self.btn_open)
         top_layout.addWidget(self.input_param01)
@@ -62,7 +73,7 @@ class PlotApp(QMainWindow):
         self.toolbar = NavigationToolbar(self.canvas, self)
         main_layout.addWidget(self.toolbar)
 
-    def open_file(self):
+    def open_file(self):  #開啟檔案
         file_path, _ = QFileDialog.getOpenFileName(
             self, '選擇高頻資料 Excel 檔', '', 'Excel Files (*.xlsx *.xls)'
         )
@@ -73,19 +84,48 @@ class PlotApp(QMainWindow):
             QApplication.processEvents()
             
             try:
-                # 1. 呼叫核心模組讀取資料
-                df = load_data(file_path)
-                
-                # 2. 呼叫核心模組把圖畫在我們 GUI 的 self.ax1 上
-                draw_high_freq_plot(self.ax1, df)
+                # 1. 讀取資料
+                self.df = load_data(file_path)
+
+                #更新下拉選單
+                self.Update_Combo(self.df.columns.tolist())                
+
+                # 2. 圖畫在我們 GUI 的 self.ax1 上
+                draw_high_freq_plot(self.ax1, self.df, self.df.columns[1] , self.df.columns[6])
                 
                 # 3. 通知畫布重新渲染
                 self.canvas.draw()
                 self.Op_status.setText(f'讀取成功：{filename}')
                 
             except Exception as e:
-                self.Op_status.setText(f'錯誤：資料處理失敗 ({str(e)})')
+                self.Op_status.setText(f'ERROR：資料處理失敗 ({str(e)})')
+    def Update_plot(self):  #數值變化 重新畫圖使用
+        current_value = self.input_param01.value()
+        print(f"現在數值是：{current_value}，標頭功能尚未啟用只是先設定")\
+        
+    def Update_Combo(self, columns):   #更新下拉選單
+        self.combo_data01.blockSignals(True)
+        self.combo_data02.blockSignals(True)
 
+        self.combo_data01.clear()
+        self.combo_data02.clear()
+        self.combo_data01.addItems(columns)
+        self.combo_data02.addItems(columns)
+        
+        self.combo_data01.blockSignals(False)
+        self.combo_data02.blockSignals(False)
+        
+        if len(columns) > 1:
+            self.combo_data01.setCurrentIndex(1)
+            self.combo_data02.setCurrentIndex(6)
+    
+    def combo01_changed(self, col1):
+        change_ax1(self.ax1, self.df, col1)
+        self.fig.canvas.draw_idle()
+
+    def combo02_changed(self, col2):
+        change_ax2(self.ax1, self.df, col2)
+        self.fig.canvas.draw_idle()
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = PlotApp()
