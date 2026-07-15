@@ -4,7 +4,8 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QFileDialog, QLabel, 
-                             QLineEdit, QComboBox, QSpinBox,QAbstractSpinBox)
+                             QLineEdit, QComboBox, QSpinBox,QAbstractSpinBox )
+from PyQt6.QtCore import Qt 
 
 # 引入plot_core.py繪圖功能
 from plot_core import load_data, draw_high_freq_plot, change_ax1, change_ax2
@@ -38,7 +39,7 @@ class PlotApp(QMainWindow):
         self.input_param01.valueChanged.connect(self.Update_plot)
 
 
-        ##設定下拉選單，調整要畫得標題
+        ##設定下拉選單
         self.combo_data01 = QComboBox(self)
         self.combo_data01.setFixedWidth(100)
         self.combo_data02 = QComboBox(self)
@@ -56,11 +57,13 @@ class PlotApp(QMainWindow):
         top_layout.addWidget(self.combo_data02)
         top_layout.addStretch()
 
-        main_layout.addLayout(top_layout)
+        main_layout.addLayout(top_layout) #裝入第一排
 
 
         # second-Status Bar
         self.Op_status = QLabel('尚未讀取檔案', self)
+        self.Op_status.setFixedHeight(25)
+        self.Op_status.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         main_layout.addWidget(self.Op_status)
         
 
@@ -88,10 +91,14 @@ class PlotApp(QMainWindow):
                 self.df = load_data(file_path)
 
                 #更新下拉選單
-                self.Update_Combo(self.df.columns.tolist())                
+                self.Update_Combo(self.df.columns.tolist())
+                col_count = len(self.df.columns.tolist())
+
+                def_col1=1 if col_count > 1 else 0
+                def_col2=6 if col_count > 6 else (col_count-1)                
 
                 # 2. 圖畫在我們 GUI 的 self.ax1 上
-                draw_high_freq_plot(self.ax1, self.df, self.df.columns[1] , self.df.columns[6])
+                draw_high_freq_plot(self.ax1, self.df, self.df.columns[def_col1] , self.df.columns[def_col2])
                 
                 # 3. 通知畫布重新渲染
                 self.canvas.draw()
@@ -112,12 +119,15 @@ class PlotApp(QMainWindow):
         self.combo_data01.addItems(columns)
         self.combo_data02.addItems(columns)
         
+        col_count = len(columns)
+
+        def_col1=1 if col_count > 1 else 0
+        def_col2=6 if col_count > 6 else (col_count-1)
+        self.combo_data01.setCurrentIndex(def_col1)
+        self.combo_data02.setCurrentIndex(def_col2)
         self.combo_data01.blockSignals(False)
         self.combo_data02.blockSignals(False)
-        
-        if len(columns) > 1:
-            self.combo_data01.setCurrentIndex(1)
-            self.combo_data02.setCurrentIndex(6)
+
     
     def combo01_changed(self, col1):
         change_ax1(self.ax1, self.df, col1)
