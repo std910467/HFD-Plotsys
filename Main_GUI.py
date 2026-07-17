@@ -1,4 +1,5 @@
 import sys
+import time
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
@@ -89,8 +90,8 @@ class PlotApp(QMainWindow):
             try:
                 # 1. 讀取資料
                 self.df = load_data(file_path)
-
-                #更新下拉選單
+                
+                ##更新下拉選單
                 self.Update_Combo(self.df.columns.tolist())
                 col_count = len(self.df.columns.tolist())
 
