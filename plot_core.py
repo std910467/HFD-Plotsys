@@ -1,15 +1,16 @@
 import pandas as pd
 
-def load_data(file_path):
+def load_data(file_path,header_row):
     """讀取 Excel 資料"""
     ext= file_path.rsplit(".",1)[-1]
+    print(f"{header_row-1}")
     if ext == 'xlsx':
-        return pd.read_excel(file_path, header=1, engine='openpyxl')
+        return pd.read_excel(file_path, header=(header_row-1), engine='openpyxl')
     else:
         try:
-            return pd.read_csv(file_path, sep=r'\s+', engine='python', header=1)#先測試空白分隔
+            return pd.read_csv(file_path, sep=r'\s+', engine='python', header=(header_row-1))#先測試空白分隔
         except Exception:
-            return pd.read_csv(file_path, header=1)  #逗號分隔
+            return pd.read_csv(file_path, header=(header_row-1))  #逗號分隔
 
 def draw_high_freq_plot(ax1, df, col1, col2):
     """

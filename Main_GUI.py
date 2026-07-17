@@ -26,19 +26,22 @@ class PlotApp(QMainWindow):
         
         # first-TOP control bar
         top_layout = QHBoxLayout()
-        self.btn_open = QPushButton('Open Excel', self) #self is not required
-        self.btn_open.setFixedWidth(100)
-        self.btn_open.clicked.connect(self.open_file)
-        
-        ##設定輸入標頭的地方~~功能開發中
+
+        ##設定輸入標頭的地方
+        self.label_header = QLabel('Header:', self)
+       # self.label_header.setFixedWidth(50)
         self.input_param01 = QSpinBox(self)
         self.input_param01.setValue(2)
         self.input_param01.setKeyboardTracking(False) #關閉鍵盤追蹤，這樣輸入完才會作動
         self.input_param01.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons) #關閉旁邊內建的上下箭頭。
         self.input_param01.setToolTip('請輸入 Excel 資料的標頭行數 (Header Line Number)') #浮動顯示輸入說明。
-        self.input_param01.setFixedWidth(100)
-        self.input_param01.valueChanged.connect(self.Update_plot)
+        self.input_param01.setFixedWidth(40)
 
+        ##開啟檔案的按鈕
+        self.btn_open = QPushButton('Open Excel', self) #self is not required
+        self.btn_open.setFixedWidth(100)
+        self.btn_open.clicked.connect(self.open_file)
+        
 
         ##設定下拉選單
         self.combo_data01 = QComboBox(self)
@@ -49,11 +52,10 @@ class PlotApp(QMainWindow):
         self.combo_data01.currentTextChanged.connect(self.combo01_changed)
         self.combo_data02.currentTextChanged.connect(self.combo02_changed)
 
-
-
-        top_layout.addWidget(self.btn_open)
+        top_layout.addWidget(self.label_header)
         top_layout.addWidget(self.input_param01)
-        top_layout.addSpacing(100)
+        top_layout.addWidget(self.btn_open)  
+        top_layout.addSpacing(100)      
         top_layout.addWidget(self.combo_data01)
         top_layout.addWidget(self.combo_data02)
         top_layout.addStretch()
@@ -84,12 +86,13 @@ class PlotApp(QMainWindow):
         
         if file_path:
             filename = file_path.split("/")[-1]
+            header_row = self.input_param01.value()
             self.Op_status.setText(f'正在讀取：{filename}')
             QApplication.processEvents()
             
             try:
                 # 1. 讀取資料
-                self.df = load_data(file_path)
+                self.df = load_data(file_path,header_row)
                 
                 ##更新下拉選單
                 self.Update_Combo(self.df.columns.tolist())
@@ -107,9 +110,6 @@ class PlotApp(QMainWindow):
                 
             except Exception as e:
                 self.Op_status.setText(f'ERROR：資料處理失敗 ({str(e)})')
-    def Update_plot(self):  #數值變化 重新畫圖使用
-        current_value = self.input_param01.value()
-        print(f"現在數值是：{current_value}，標頭功能尚未啟用只是先設定")\
         
     def Update_Combo(self, columns):   #更新下拉選單
         self.combo_data01.blockSignals(True)
