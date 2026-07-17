@@ -4,6 +4,7 @@ Since Excel cannot directly plot data sets with more than 20,000 records, I crea
 Currently, I’m primarily using two libraries: PyQT6 and matplotlib.
 
 
+<<<<<<< HEAD
 ## Files
 
 - `Main_GUI.py` — 主要執行的程式
@@ -34,5 +35,4 @@ python Main_GUI.py
 1. 點擊 **Open Excel** 按鈕,選擇你的資料檔案
 2. 從下拉選單選擇要繪製的欄位
 3. 圖表會自動顯示在畫面中
-
 
