@@ -5,8 +5,9 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QFileDialog, QLabel, 
-                             QLineEdit, QComboBox, QSpinBox,QAbstractSpinBox )
+                             QLineEdit, QComboBox, QSpinBox,QAbstractSpinBox  )
 from PyQt6.QtCore import Qt 
+from PyQt6.QtGui import QAction
 
 # 引入plot_core.py繪圖功能
 from plot_core import load_data, draw_high_freq_plot, change_ax1, change_ax2
@@ -24,6 +25,16 @@ class PlotApp(QMainWindow):
         self.setCentralWidget(main_widget)
         main_layout = QVBoxLayout(main_widget)
         
+        #設定 menu bar
+        menubar = self.menuBar()
+        settings_menu = menubar.addMenu('設定')
+
+        open_settings_action = QAction('繪圖參數設定', self)
+        open_settings_action.triggered.connect(self.open_settings_dialog)
+        settings_menu.addAction(open_settings_action)
+
+
+
         # first-TOP control bar
         top_layout = QHBoxLayout()
 
@@ -137,6 +148,11 @@ class PlotApp(QMainWindow):
     def combo02_changed(self, col2):
         change_ax2(self.ax1, self.df, col2)
         self.fig.canvas.draw_idle()
+    
+    def open_settings_dialog(self):
+        print("功能建立中")
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = PlotApp()
